@@ -1,0 +1,96 @@
+Confusion Matrix for anger:
+
+[[  5  54   0]
+ [  7 182  15]
+ [  0  38  10]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.42      0.08      0.14        59
+      medium       0.66      0.89      0.76       204
+        high       0.40      0.21      0.27        48
+
+    accuracy                           0.63       311
+   macro avg       0.49      0.40      0.39       311
+weighted avg       0.58      0.63      0.57       311
+
+auc:  0.4606493642552129
+kappa: 0.0889842485289205
+accuracy: 0.6334405144694534 
+
+------------------------------------------------------
+
+
+Confusion Matrix for fear:
+
+[[ 18  54   3]
+ [ 20 205  20]
+ [  1  65  29]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.46      0.24      0.32        75
+      medium       0.63      0.84      0.72       245
+        high       0.56      0.31      0.39        95
+
+    accuracy                           0.61       415
+   macro avg       0.55      0.46      0.48       415
+weighted avg       0.58      0.61      0.57       415
+
+auc:  0.47130337526576893
+kappa: 0.2039891739232761
+accuracy: 0.6072289156626506 
+
+------------------------------------------------------
+
+
+Confusion Matrix for joy:
+
+[[ 11  58   1]
+ [ 19 135   9]
+ [  0  37  28]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.37      0.16      0.22        70
+      medium       0.59      0.83      0.69       163
+        high       0.74      0.43      0.54        65
+
+    accuracy                           0.58       298
+   macro avg       0.56      0.47      0.48       298
+weighted avg       0.57      0.58      0.55       298
+
+auc:  0.4318979069188848
+kappa: 0.20948143077186365
+accuracy: 0.5838926174496645 
+
+------------------------------------------------------
+
+
+Confusion Matrix for sadness:
+
+[[  6  61   1]
+ [  6 139   7]
+ [  0  54  10]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.50      0.09      0.15        68
+      medium       0.55      0.91      0.68       152
+        high       0.56      0.16      0.24        64
+
+    accuracy                           0.55       284
+   macro avg       0.53      0.39      0.36       284
+weighted avg       0.54      0.55      0.46       284
+
+auc:  0.4576148812064305
+kappa: 0.08592814371257484
+accuracy: 0.545774647887324 
+
+------------------------------------------------------
+
+

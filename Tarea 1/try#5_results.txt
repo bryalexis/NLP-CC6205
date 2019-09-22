@@ -1,0 +1,99 @@
+AdaBoost Classifier, 1-2ngrams, with stopwords removal and stemization 
+ 
+
+Confusion Matrix for anger:
+
+[[  5  44   0]
+ [ 11 184  13]
+ [  1  41  12]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.29      0.10      0.15        49
+      medium       0.68      0.88      0.77       208
+        high       0.48      0.22      0.30        54
+
+    accuracy                           0.65       311
+   macro avg       0.49      0.40      0.41       311
+weighted avg       0.59      0.65      0.59       311
+
+auc:  0.515732688732437
+kappa: 0.11340900844866009
+accuracy: 0.6463022508038585 
+
+------------------------------------------------------
+
+
+Confusion Matrix for fear:
+
+[[ 10  87   6]
+ [  4 209  17]
+ [  0  62  20]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.71      0.10      0.17       103
+      medium       0.58      0.91      0.71       230
+        high       0.47      0.24      0.32        82
+
+    accuracy                           0.58       415
+   macro avg       0.59      0.42      0.40       415
+weighted avg       0.59      0.58      0.50       415
+
+auc:  0.5086599551358588
+kappa: 0.13986598678709794
+accuracy: 0.5759036144578313 
+
+------------------------------------------------------
+
+
+Confusion Matrix for joy:
+
+[[  7  62   2]
+ [  4 154   9]
+ [  2  38  20]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.54      0.10      0.17        71
+      medium       0.61      0.92      0.73       167
+        high       0.65      0.33      0.44        60
+
+    accuracy                           0.61       298
+   macro avg       0.60      0.45      0.45       298
+weighted avg       0.60      0.61      0.54       298
+
+auc:  0.4699952439348503
+kappa: 0.20037612090911172
+accuracy: 0.6073825503355704 
+
+------------------------------------------------------
+
+
+Confusion Matrix for sadness:
+
+[[  2  57   2]
+ [  3 134  12]
+ [  1  66   7]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.33      0.03      0.06        61
+      medium       0.52      0.90      0.66       149
+        high       0.33      0.09      0.15        74
+
+    accuracy                           0.50       284
+   macro avg       0.40      0.34      0.29       284
+weighted avg       0.43      0.50      0.40       284
+
+auc:  0.5259126842102273
+kappa: 0.00986573696313342
+accuracy: 0.5035211267605634 
+
+------------------------------------------------------
+
+
