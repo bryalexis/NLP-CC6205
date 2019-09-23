@@ -104,16 +104,19 @@ def split_dataset(dataset):
 
 # Esto hace los tokens para un tweet (considera emojis y caritas)
 # y ademas añade un negado a todo lo que venga después de una negación
-from spacy.lang.en.stop_words import STOP_WORDS
+from nltk.corpus import stopwords
+from nltk.parse.corenlp import CoreNLPParser
 def superTokenize(text):
     tokens = TweetTokenizer().tokenize(text)
     tokens = mark_negation(tokens)
-    NSW_tokens = [ token for token in tokens if token not in STOP_WORDS ]
+    SW = set(stopwords.words('english'))
+    NSW_tokens = [ token for token in tokens if token not in (SW | {".", ",", ":"}) ]
     ps = PorterStemmer()
     stemmedTokens = []
     for word in NSW_tokens:
+        print(word+" \n")
         stemmedTokens.append(ps.stem(word))
-    return stemmedTokens
+    return tokens
 
 """
     Consejo para el vectorizador: investigar los modulos de nltk, en particular, 
@@ -135,7 +138,6 @@ from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 def get_classifier():
@@ -148,10 +150,10 @@ def get_classifier():
     k_neighbors = KNeighborsClassifier(5)
     svc = SVC(kernel='linear', probability=True) #best
     # Establecer el pipeline.
-    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
     return text_clf
 
-print("MLP Classifier, 1-2ngrams, with stopwords removal and stemization \n \n")
+print("MLP Classifier, 1-2ngrams, with stopwords removal and without stemization \n Stanford \n")
 
 # Esto de aquí imprime los datos importantes
 # Esta función imprime la matriz de confusión, 
@@ -244,23 +246,23 @@ def predict_target(dataset, classifier, labels):
 
 predicted_target = {}
 
-if (not os.path.isdir('./predictions')):
-    os.mkdir('./predictions')
+# if (not os.path.isdir('./predictions')):
+#     os.mkdir('./predictions')
 
-else:
-    # Eliminar predicciones anteriores:
-    shutil.rmtree('./predictions')
-    os.mkdir('./predictions')
+# else:
+#     # Eliminar predicciones anteriores:
+#     shutil.rmtree('./predictions')
+#     os.mkdir('./predictions')
 
-for idx, key in enumerate(target):
-    # Predecir el target set
-    predicted_target[key] = predict_target(target[key], classifiers[idx],
-                                           learned_labels_array[idx])
-    # Guardar predicciones
-    predicted_target[key].to_csv('./predictions/{}-pred.txt'.format(key),
-                                 sep='\t',
-                                 header=False,
-                                 index=False)
+# for idx, key in enumerate(target):
+#     # Predecir el target set
+#     predicted_target[key] = predict_target(target[key], classifiers[idx],
+#                                            learned_labels_array[idx])
+#     # Guardar predicciones
+#     predicted_target[key].to_csv('./predictions/{}-pred.txt'.format(key),
+#                                  sep='\t',
+#                                  header=False,
+#                                  index=False)
 
-# Crear archivo zip
-a = shutil.make_archive('predictions', 'zip', './predictions')
+# # Crear archivo zip
+# a = shutil.make_archive('predictions', 'zip', './predictions')

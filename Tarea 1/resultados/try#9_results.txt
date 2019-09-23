@@ -1,0 +1,3 @@
+MLP Classifier, 1-2ngrams, with stopwords removal and without stemization 
+ Stanford 
+
