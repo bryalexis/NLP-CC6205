@@ -105,17 +105,41 @@ def split_dataset(dataset):
 # Esto hace los tokens para un tweet (considera emojis y caritas)
 # y ademas añade un negado a todo lo que venga después de una negación
 from nltk.corpus import stopwords
-from nltk.parse.corenlp import CoreNLPParser
+from nltk.stem import WordNetLemmatizer
+
+# Remueve stop words, puntos, comas, dos puntos y tags de twitter
+def remStopWords(tokens):
+    newTokens = []
+    stopWords = set(stopwords.words('english'))
+    stopWords_extended = stopWords | {".", ",", ":"}
+    for token in tokens:
+        if (token not in stopWords_extended) and (token[0:1]!='@'):
+            newTokens.append(token)
+    return newTokens
+
+# Hace un stemming
+def stemmize(tokens):
+    ps = PorterStemmer()
+    stemmedTokens = []
+    for word in tokens:
+        stemmedTokens.append(ps.stem(word))
+    return stemmedTokens
+
+# Lematization
+def lemmatize(tokens):
+    lem = WordNetLemmatizer()
+    lemmatizedTokens = []
+    for word in tokens:
+        lemmatizedTokens.append(lem.lemmatize(word))
+    return lemmatizedTokens
+
+# The FINAL Tokenizer    
 def superTokenize(text):
     tokens = TweetTokenizer().tokenize(text)
     tokens = mark_negation(tokens)
-    SW = set(stopwords.words('english'))
-    NSW_tokens = [ token for token in tokens if token not in (SW | {".", ",", ":"}) ]
-    ps = PorterStemmer()
-    stemmedTokens = []
-    for word in NSW_tokens:
-        print(word+" \n")
-        stemmedTokens.append(ps.stem(word))
+    tokens = remStopWords(tokens)
+    #tokens = stemmize(tokens)  
+    tokens = lemmatize(tokens)
     return tokens
 
 """
@@ -153,7 +177,7 @@ def get_classifier():
     text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
     return text_clf
 
-print("MLP Classifier, 1-2ngrams, with stopwords removal and without stemization \n Stanford \n")
+print("SVC Classifier, 1-2ngrams, with stopwords removal\n \n")
 
 # Esto de aquí imprime los datos importantes
 # Esta función imprime la matriz de confusión, 

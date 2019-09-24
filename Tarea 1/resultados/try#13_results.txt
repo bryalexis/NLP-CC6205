@@ -1,0 +1,99 @@
+SVC Classifier, 1-2ngrams, with stopwords removal and with stemization 
+ 
+
+Confusion Matrix for anger:
+
+[[  0  56   0]
+ [  0 195   4]
+ [  0  47   9]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.00      0.00      0.00        56
+      medium       0.65      0.98      0.78       199
+        high       0.69      0.16      0.26        56
+
+    accuracy                           0.66       311
+   macro avg       0.45      0.38      0.35       311
+weighted avg       0.54      0.66      0.55       311
+
+auc:  0.4519276842569826
+kappa: 0.09304734130985792
+accuracy: 0.6559485530546624 
+
+------------------------------------------------------
+
+
+Confusion Matrix for fear:
+
+[[ 12  89   0]
+ [ 10 202   8]
+ [  3  72  19]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.48      0.12      0.19       101
+      medium       0.56      0.92      0.69       220
+        high       0.70      0.20      0.31        94
+
+    accuracy                           0.56       415
+   macro avg       0.58      0.41      0.40       415
+weighted avg       0.57      0.56      0.48       415
+
+auc:  0.3889017795552249
+kappa: 0.13484227165471585
+accuracy: 0.5614457831325301 
+
+------------------------------------------------------
+
+
+Confusion Matrix for joy:
+
+[[ 10  74   1]
+ [  2 138  17]
+ [  0  32  24]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.83      0.12      0.21        85
+      medium       0.57      0.88      0.69       157
+        high       0.57      0.43      0.49        56
+
+    accuracy                           0.58       298
+   macro avg       0.66      0.48      0.46       298
+weighted avg       0.64      0.58      0.51       298
+
+auc:  0.38253052265393417
+kappa: 0.20320855614973266
+accuracy: 0.5771812080536913 
+
+------------------------------------------------------
+
+
+Confusion Matrix for sadness:
+
+[[  2  62   0]
+ [  2 144   9]
+ [  0  46  19]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.50      0.03      0.06        64
+      medium       0.57      0.93      0.71       155
+        high       0.68      0.29      0.41        65
+
+    accuracy                           0.58       284
+   macro avg       0.58      0.42      0.39       284
+weighted avg       0.58      0.58      0.49       284
+
+auc:  0.42774198649376444
+kappa: 0.14483805668016203
+accuracy: 0.5809859154929577 
+
+------------------------------------------------------
+
+

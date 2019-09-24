@@ -1,0 +1,99 @@
+MLP Classifier, 1-2ngrams, with stopwords removal and without stemization 
+ Stanford 
+
+Confusion Matrix for anger:
+
+[[ 18  28   2]
+ [ 18 173  21]
+ [  0  32  19]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.50      0.38      0.43        48
+      medium       0.74      0.82      0.78       212
+        high       0.45      0.37      0.41        51
+
+    accuracy                           0.68       311
+   macro avg       0.56      0.52      0.54       311
+weighted avg       0.66      0.68      0.66       311
+
+auc:  0.4716495763639163
+kappa: 0.2771602807502014
+accuracy: 0.6752411575562701 
+
+------------------------------------------------------
+
+
+Confusion Matrix for fear:
+
+[[ 34  59   4]
+ [ 32 172  23]
+ [  9  52  30]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.45      0.35      0.40        97
+      medium       0.61      0.76      0.67       227
+        high       0.53      0.33      0.41        91
+
+    accuracy                           0.57       415
+   macro avg       0.53      0.48      0.49       415
+weighted avg       0.55      0.57      0.55       415
+
+auc:  0.428928158923814
+kappa: 0.22232574694834706
+accuracy: 0.5686746987951807 
+
+------------------------------------------------------
+
+
+Confusion Matrix for joy:
+
+[[ 25  52   3]
+ [ 15 121  18]
+ [  0  36  28]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.62      0.31      0.42        80
+      medium       0.58      0.79      0.67       154
+        high       0.57      0.44      0.50        64
+
+    accuracy                           0.58       298
+   macro avg       0.59      0.51      0.53       298
+weighted avg       0.59      0.58      0.56       298
+
+auc:  0.4205361914448871
+kappa: 0.26510480887792853
+accuracy: 0.5838926174496645 
+
+------------------------------------------------------
+
+
+Confusion Matrix for sadness:
+
+[[ 16  58   2]
+ [ 18 113  18]
+ [  3  32  24]]
+
+Classification Report
+              precision    recall  f1-score   support
+
+         low       0.43      0.21      0.28        76
+      medium       0.56      0.76      0.64       149
+        high       0.55      0.41      0.47        59
+
+    accuracy                           0.54       284
+   macro avg       0.51      0.46      0.46       284
+weighted avg       0.52      0.54      0.51       284
+
+auc:  0.41105969864772685
+kappa: 0.17326281638185836
+accuracy: 0.5387323943661971 
+
+------------------------------------------------------
+
+
