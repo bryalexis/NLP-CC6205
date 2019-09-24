@@ -136,10 +136,10 @@ def lemmatize(tokens):
 
 # The FINAL Tokenizer    
 def superTokenize(text):
-    tokens = TweetTokenizer().tokenize(text)
+    tokens = TweetTokenizer(preserve_case=False, strip_handles=True, reduce_len=True).tokenize(text)
     tokens = mark_negation(tokens)
     tokens = remStopWords(tokens)
-    #tokens = stemmize(tokens)  
+    tokens = stemmize(tokens)  
     #tokens = lemmatize(tokens)
     return tokens
 
