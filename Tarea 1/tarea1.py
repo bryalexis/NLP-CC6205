@@ -106,6 +106,7 @@ def split_dataset(dataset):
 # y ademas añade un negado a todo lo que venga después de una negación
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
+from emoji import UNICODE_EMOJI
 
 # Remueve stop words, puntos, comas, dos puntos y tags de twitter
 def remStopWords(tokens):
@@ -139,8 +140,14 @@ def superTokenize(text):
     tokens = mark_negation(tokens)
     tokens = remStopWords(tokens)
     #tokens = stemmize(tokens)  
-    tokens = lemmatize(tokens)
+    #tokens = lemmatize(tokens)
     return tokens
+
+def getEmojis():
+    emojis = []
+    for key in UNICODE_EMOJI:
+        emojis.append(key)
+    return emojis
 
 """
     Consejo para el vectorizador: investigar los modulos de nltk, en particular, 
@@ -166,15 +173,15 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 def get_classifier():
      # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenize, ngram_range=(1,2))
+    vectorizer = CountVectorizer(tokenizer=superTokenize, ngram_range=(2,2))
     
     # Clasificadores.
     naive_bayes = MultinomialNB()
-    mlp = MLPClassifier()
+    mlp = MLPClassifier() # mas auc
     k_neighbors = KNeighborsClassifier(5)
-    svc = SVC(kernel='linear', probability=True) #best
+    svc = SVC(kernel='linear', probability=True) #mas accuracy
     # Establecer el pipeline.
-    text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
     return text_clf
 
 print("SVC Classifier, 1-2ngrams, with stopwords removal\n \n")
@@ -223,6 +230,7 @@ def evaulate(predicted, y_test, labels):
 def classify(dataset, key):
 
     X_train, X_test, y_train, y_test = split_dataset(dataset)
+
     text_clf = get_classifier()
 
     # Entrenar el clasificador
