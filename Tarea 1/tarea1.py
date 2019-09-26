@@ -95,20 +95,30 @@ def split_dataset(dataset):
         test_size=0.33)
     return X_train, X_test, y_train, y_test
 
-
-
-
 # CLASIFICADOR, Aquí hay que meter mano y modificar cosas, actualmente se usa
 # naive-bayes.
 # Definimos el pipeline con el vectorizador y el clasificador.
 
 # Esto hace los tokens para un tweet (considera emojis y caritas)
 # y ademas añade un negado a todo lo que venga después de una negación
+
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from emoji import UNICODE_EMOJI
 
 # Remueve stop words, puntos, comas, dos puntos y tags de twitter
+
+def cosasRandom(tokens):
+
+    nuevosTokens = []
+    for token in tokens:
+        if token[-4:] == '_NEG':
+            nuevosTokens.append(token)
+    if (nuevosTokens == []):
+        return tokens
+    else:
+        return nuevosTokens
+
 def remStopWords(tokens):
     newTokens = []
     stopWords = set(stopwords.words('english'))
@@ -136,11 +146,52 @@ def lemmatize(tokens):
 
 # The FINAL Tokenizer    
 def superTokenize(text):
-    tokens = TweetTokenizer(preserve_case=False, strip_handles=True, reduce_len=True).tokenize(text)
+    tokens = TweetTokenizer().tokenize(text)
     tokens = mark_negation(tokens)
     tokens = remStopWords(tokens)
+    #tokens = cosasRandom(tokens)
+    tokens = lemmatize(tokens)
+
     tokens = stemmize(tokens)  
+    return tokens
+
+def superTokenizeAnger(text):
+    tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
+    tokens = mark_negation(tokens)
+    tokens = remStopWords(tokens)
+    #tokens = cosasRandom(tokens)
+    tokens = stemmize(tokens)  
+    tokens = lemmatize(tokens)
+    return tokens
+
+def superTokenizeJoy(text):
+    tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
+    tokens = mark_negation(tokens)
+    tokens = remStopWords(tokens)
+    #tokens = cosasRandom(tokens)
     #tokens = lemmatize(tokens)
+
+    tokens = stemmize(tokens)  
+    return tokens
+
+def superTokenizeFear(text):
+    tokens = TweetTokenizer(preserve_case=False, strip_handles=True, reduce_len=True).tokenize(text)
+    #tokens = mark_negation(tokens)
+    tokens = remStopWords(tokens)
+    #tokens = cosasRandom(tokens)
+    tokens = lemmatize(tokens)
+
+    tokens = stemmize(tokens)  
+    return tokens
+
+def superTokenizeSadness(text):
+    tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
+    tokens = mark_negation(tokens)
+    tokens = remStopWords(tokens)
+    #tokens = cosasRandom(tokens)
+    #tokens = lemmatize(tokens)
+
+    tokens = stemmize(tokens)  
     return tokens
 
 def getEmojis():
@@ -171,16 +222,62 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
+def get_classifierAnger():
+     # Inicializamos el Vectorizador para transformar las oraciones a BoW 
+    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(1,2))
+    
+    # Clasificadores.
+    lr = LogisticRegression()
+    mlp = MLPClassifier() # mas auc
+    svc = SVC(kernel='linear', probability=True) 
+
+    text_clf = Pipeline([('vect', vectorizer), ('clf',mlp)])
+    return text_clf
+
+def get_classifierFear():
+        # Inicializamos el Vectorizador para transformar las oraciones a BoW 
+    vectorizer = CountVectorizer(tokenizer=superTokenizeFear, ngram_range=(1,1))
+
+    # Clasificadores.
+    mlp = MLPClassifier() # mas auc
+    svc = SVC(kernel='linear', probability=True) 
+
+    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
+    return text_clf
+
+def get_classifierJoy():
+        # Inicializamos el Vectorizador para transformar las oraciones a BoW 
+    vectorizer = CountVectorizer(tokenizer=superTokenizeJoy, ngram_range=(1,2))
+
+    # Clasificadores.
+    mlp = MLPClassifier() # mas auc
+    svc = SVC(kernel='linear', probability=True)
+  
+    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
+    return text_clf
+
+
+def get_classifierSadness():
+    # Inicializamos el Vectorizador para transformar las oraciones a BoW 
+    vectorizer = CountVectorizer(tokenizer=superTokenizeSadness, ngram_range=(1,1))
+
+    # Clasificadores.
+    mlp = MLPClassifier() 
+    svc = SVC(kernel='linear', probability=True) 
+  
+    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
+    return text_clf
+
 def get_classifier():
      # Inicializamos el Vectorizador para transformar las oraciones a BoW 
     vectorizer = CountVectorizer(tokenizer=superTokenize, ngram_range=(2,2))
     
     # Clasificadores.
-    naive_bayes = MultinomialNB()
-    mlp = MLPClassifier() # mas auc
+    lr = LogisticRegression()
+    mlp = MLPClassifier() 
     k_neighbors = KNeighborsClassifier(5)
-    svc = SVC(kernel='linear', probability=True) #mas accuracy
-    # Establecer el pipeline.
+    svc = SVC(kernel='linear', probability=True) 
+
     text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
     return text_clf
 
@@ -191,7 +288,7 @@ print("SVC Classifier, 1-2ngrams, with stopwords removal\n \n")
 # el reporte de clasificación y las metricas 
 # usadas en la competencia:
 
-def evaulate(predicted, y_test, labels):
+def evaulate(predicted, y_test, labels, key):
     # Importante: al transformar los arreglos de probabilidad a clases,
     # entregar el arreglo de clases aprendido por el clasificador. 
     # (que comunmente, es distinto a ['low', 'medium', 'high'])
@@ -246,6 +343,82 @@ def classify(dataset, key):
     evaulate(predicted, y_test, learned_labels)
     return text_clf, learned_labels
 
+def classifyAnger(dataset, key):
+
+    X_train, X_test, y_train, y_test = split_dataset(dataset)
+
+    text_clf = get_classifierAnger()
+
+    # Entrenar el clasificador
+    text_clf.fit(X_train, y_train)
+
+    # Predecir las probabilidades de intensidad de cada elemento del set de prueba.
+    predicted = text_clf.predict_proba(X_test)
+
+    # Obtener las clases aprendidas.
+    learned_labels = text_clf.classes_
+
+    # Evaluar
+    evaulate(predicted, y_test, learned_labels, key)
+    return text_clf, learned_labels
+
+def classifyFear(dataset, key):
+
+    X_train, X_test, y_train, y_test = split_dataset(dataset)
+
+    text_clf = get_classifierFear()
+
+    # Entrenar el clasificador
+    text_clf.fit(X_train, y_train)
+
+    # Predecir las probabilidades de intensidad de cada elemento del set de prueba.
+    predicted = text_clf.predict_proba(X_test)
+
+    # Obtener las clases aprendidas.
+    learned_labels = text_clf.classes_
+
+    # Evaluar
+    evaulate(predicted, y_test, learned_labels,key)
+    return text_clf, learned_labels
+
+def classifyJoy(dataset, key):
+
+    X_train, X_test, y_train, y_test = split_dataset(dataset)
+
+    text_clf = get_classifierJoy()
+
+    # Entrenar el clasificador
+    text_clf.fit(X_train, y_train)
+
+    # Predecir las probabilidades de intensidad de cada elemento del set de prueba.
+    predicted = text_clf.predict_proba(X_test)
+
+    # Obtener las clases aprendidas.
+    learned_labels = text_clf.classes_
+
+    # Evaluar
+    evaulate(predicted, y_test, learned_labels, key)
+    return text_clf, learned_labels
+
+def classifySadness(dataset, key):
+
+    X_train, X_test, y_train, y_test = split_dataset(dataset)
+
+    text_clf = get_classifierSadness()
+
+    # Entrenar el clasificador
+    text_clf.fit(X_train, y_train)
+
+    # Predecir las probabilidades de intensidad de cada elemento del set de prueba.
+    predicted = text_clf.predict_proba(X_test)
+
+    # Obtener las clases aprendidas.
+    learned_labels = text_clf.classes_
+
+    # Evaluar
+    evaulate(predicted, y_test, learned_labels, key)
+    return text_clf, learned_labels
+
 
 
 # Ejecutar el clasificador por cada dataset
@@ -254,10 +427,26 @@ classifiers = []
 learned_labels_array = []
 
 # Por cada llave en train ('anger', 'fear', 'joy', 'sadness')
-for key in train:
-    classifier, learned_labels = classify(train[key], key)
-    classifiers.append(classifier)
-    learned_labels_array.append(learned_labels)
+#for key in train:
+ #   classifier, learned_labels = classify(train[key], key)
+  #  classifiers.append(classifier)
+   # learned_labels_array.append(learned_labels)
+
+classifierAnger, learned_labels_anger = classifyAnger(train['anger'], 'anger')
+classifiers.append(classifierAnger)
+learned_labels_array.append(learned_labels_anger)
+
+classifierFear, learned_labels_fear = classifyFear(train['fear'], 'fear')
+classifiers.append(classifierFear)
+learned_labels_array.append(learned_labels_fear)
+
+classifierJoy, learned_labels_joy = classifyJoy(train['joy'], 'joy')
+classifiers.append(classifierJoy)
+learned_labels_array.append(learned_labels_joy)
+
+classifierSadness, learned_labels_sadness = classifySadness(train['sadness'], 'sadness')
+classifiers.append(classifierSadness)
+learned_labels_array.append(learned_labels_sadness)
 
 
 
