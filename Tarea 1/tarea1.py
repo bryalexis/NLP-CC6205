@@ -149,7 +149,6 @@ def superTokenize(text, mark_neg, remSW, lem, stem):
     if remSW:       tokens = remStopWords(tokens)
     if lem:         tokens = lemmatize(tokens)
     if stem:        tokens = stemmize(tokens) 
-    #tokens = cosasRandom(tokens) 
     return tokens
 
 from lexicons import getLexicons
@@ -160,54 +159,80 @@ def getAngerLexicons():
         if lexicons[key][4] == '#anger':
             angerLexicons.append(key)
     return angerLexicons 
- 
+
 angerLexicons = getAngerLexicons()
 
+def getFearLexicons():
+    lexicons = getLexicons()
+    fearLexicons = []
+    for key in lexicons:
+        if lexicons[key][4] == '#fear':
+            fearLexicons.append(key)
+    return fearLexicons 
+
+fearLexicons = getFearLexicons()
+
+def getJoyLexicons():
+    lexicons = getLexicons()
+    joyLexicons = []
+    for key in lexicons:
+        if lexicons[key][4] == '#joy' or lexicons[key][6] == 'positive':
+            joyLexicons.append(key)
+    return joyLexicons 
+
+joyLexicons = getJoyLexicons()
+
+def getSadnessLexicons():
+    lexicons = getLexicons()
+    sadnessLexicons = []
+    for key in lexicons:
+        if lexicons[key][4] == '#sadness':
+            sadnessLexicons.append(key)
+    return sadnessLexicons 
+
+sadnessLexicons = getSadnessLexicons()
+
+
+
 def superTokenizeAnger(text):
-    tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
-    tokens = remStopWords(tokens)
-    #tokens = mark_negation(tokens)
-    tokens = hashtagToWord(tokens)
-    tokens = stemmize(tokens)  
-    #tokens = lemmatize(tokens)
+    tokens = superTokenize(text, False, True, False, True)
     newTokens = []
     for token in tokens:
         if token in angerLexicons:
-            newTokens.append('ANGER')
+            newTokens.append('anger')
         else:
             newTokens.append(token)
-    #print(newTokens)
+    return newTokens
+
+def superTokenizeFear(text):
+    tokens = superTokenize(text, False, True, True, True)
+    newTokens = []
+    for token in tokens:
+        if token in joyLexicons:
+            newTokens.append('fear')
+        else:
+            newTokens.append(token)
     return newTokens
 
 def superTokenizeJoy(text):
-    tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
-    tokens = mark_negation(tokens)
-    tokens = remStopWords(tokens)
-    #tokens = cosasRandom(tokens)
-    #tokens = lemmatize(tokens)
-
-    tokens = stemmize(tokens)  
-    return tokens
-
-def superTokenizeFear(text):
-    tokens = TweetTokenizer(preserve_case=False, strip_handles=True, reduce_len=True).tokenize(text)
-    #tokens = mark_negation(tokens)
-    tokens = remStopWords(tokens)
-    #tokens = cosasRandom(tokens)
-    tokens = lemmatize(tokens)
-
-    tokens = stemmize(tokens)  
-    return tokens
+    tokens = superTokenize(text, True, True, False, True)  
+    newTokens = []
+    for token in tokens:
+        if token in joyLexicons:
+            newTokens.append('joy')
+        else:
+            newTokens.append(token)
+    return newTokens
 
 def superTokenizeSadness(text):
-    tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
-    tokens = mark_negation(tokens)
-    tokens = remStopWords(tokens)
-    #tokens = cosasRandom(tokens)
-    #tokens = lemmatize(tokens)
-
-    tokens = stemmize(tokens)  
-    return tokens
+    tokens = superTokenize(text, True, True, False, True)
+    newTokens = []
+    for token in tokens:
+        if token in sadnessLexicons:
+            newTokens.append('sadness')
+        else:
+            newTokens.append(token)
+    return newTokens
 
 def getEmojis():
     emojis = []
@@ -261,19 +286,19 @@ def get_classifierFear():
 
 def get_classifierJoy():
         # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeJoy, ngram_range=(1,2))
+    vectorizer = CountVectorizer(tokenizer=superTokenizeJoy, ngram_range=(1,1))
 
     # Clasificadores.
     mlp = MLPClassifier() # mas auc
     svc = SVC(kernel='linear', probability=True)
   
-    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
     return text_clf
 
 
 def get_classifierSadness():
     # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeSadness, ngram_range=(1,1))
+    vectorizer = CountVectorizer(tokenizer=superTokenizeSadness, ngram_range=(1,2))
 
     # Clasificadores.
     mlp = MLPClassifier() 
@@ -455,17 +480,17 @@ classifierAnger, learned_labels_anger = classifyAnger(train['anger'], 'anger')
 classifiers.append(classifierAnger)
 learned_labels_array.append(learned_labels_anger)
 
-# classifierFear, learned_labels_fear = classifyAnger(train['fear'], 'fear')
-# classifiers.append(classifierFear)
-# learned_labels_array.append(learned_labels_fear)
+classifierFear, learned_labels_fear = classifyAnger(train['fear'], 'fear')
+classifiers.append(classifierFear)
+learned_labels_array.append(learned_labels_fear)
 
-# classifierJoy, learned_labels_joy = classifyAnger(train['joy'], 'joy')
-# classifiers.append(classifierJoy)
-# learned_labels_array.append(learned_labels_joy)
+classifierJoy, learned_labels_joy = classifyAnger(train['joy'], 'joy')
+classifiers.append(classifierJoy)
+learned_labels_array.append(learned_labels_joy)
 
-# classifierSadness, learned_labels_sadness = classifyAnger(train['sadness'], 'sadness')
-# classifiers.append(classifierSadness)
-# learned_labels_array.append(learned_labels_sadness)
+classifierSadness, learned_labels_sadness = classifyAnger(train['sadness'], 'sadness')
+classifiers.append(classifierSadness)
+learned_labels_array.append(learned_labels_sadness)
 
 
 
