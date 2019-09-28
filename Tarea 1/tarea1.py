@@ -9,7 +9,7 @@
 import pandas as pd
 import shutil
 
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import confusion_matrix, cohen_kappa_score, classification_report, accuracy_score, roc_auc_score
@@ -108,21 +108,19 @@ from emoji import UNICODE_EMOJI
 
 # Remueve stop words, puntos, comas, dos puntos y tags de twitter
 
-def cosasRandom(tokens):
-
-    nuevosTokens = []
+def hashtagToWord(tokens):
+    newTokens = []
     for token in tokens:
-        if token[-4:] == '_NEG':
-            nuevosTokens.append(token)
-    if (nuevosTokens == []):
-        return tokens
-    else:
-        return nuevosTokens
+        newTokens.append(token.replace('#',''))
+        #token = token.replace('&','and')
+        #print(token)
+    return newTokens
+    
 
 def remStopWords(tokens):
     newTokens = []
     stopWords = set(stopwords.words('english'))
-    stopWords_extended = stopWords | {".", ",", ":"}
+    stopWords_extended = stopWords | {'.', ',', ':', '+', '-', '(',')',';','\'','..','...','—', '>','<','\\','n'}
     for token in tokens:
         if (token not in stopWords_extended) and (token[0:1]!='@'):
             newTokens.append(token)
@@ -145,24 +143,41 @@ def lemmatize(tokens):
     return lemmatizedTokens
 
 # The FINAL Tokenizer    
-def superTokenize(text):
+def superTokenize(text, mark_neg, remSW, lem, stem):
     tokens = TweetTokenizer().tokenize(text)
-    tokens = mark_negation(tokens)
-    tokens = remStopWords(tokens)
-    #tokens = cosasRandom(tokens)
-    tokens = lemmatize(tokens)
-
-    tokens = stemmize(tokens)  
+    if mark_neg:    tokens = mark_negation(tokens)
+    if remSW:       tokens = remStopWords(tokens)
+    if lem:         tokens = lemmatize(tokens)
+    if stem:        tokens = stemmize(tokens) 
+    #tokens = cosasRandom(tokens) 
     return tokens
+
+from lexicons import getLexicons
+def getAngerLexicons():
+    lexicons = getLexicons()
+    angerLexicons = []
+    for key in lexicons:
+        if lexicons[key][4] == '#anger':
+            angerLexicons.append(key)
+    return angerLexicons 
+ 
+angerLexicons = getAngerLexicons()
 
 def superTokenizeAnger(text):
     tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
-    tokens = mark_negation(tokens)
     tokens = remStopWords(tokens)
-    #tokens = cosasRandom(tokens)
+    #tokens = mark_negation(tokens)
+    tokens = hashtagToWord(tokens)
     tokens = stemmize(tokens)  
-    tokens = lemmatize(tokens)
-    return tokens
+    #tokens = lemmatize(tokens)
+    newTokens = []
+    for token in tokens:
+        if token in angerLexicons:
+            newTokens.append('ANGER')
+        else:
+            newTokens.append(token)
+    #print(newTokens)
+    return newTokens
 
 def superTokenizeJoy(text):
     tokens = TweetTokenizer(preserve_case=False,strip_handles=True, reduce_len=True).tokenize(text)
@@ -224,14 +239,13 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 def get_classifierAnger():
      # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(1,2))
-    
+    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(2,2))
     # Clasificadores.
     lr = LogisticRegression()
     mlp = MLPClassifier() # mas auc
     svc = SVC(kernel='linear', probability=True) 
 
-    text_clf = Pipeline([('vect', vectorizer), ('clf',mlp)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf',svc)])
     return text_clf
 
 def get_classifierFear():
@@ -242,7 +256,7 @@ def get_classifierFear():
     mlp = MLPClassifier() # mas auc
     svc = SVC(kernel='linear', probability=True) 
 
-    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
     return text_clf
 
 def get_classifierJoy():
@@ -268,9 +282,14 @@ def get_classifierSadness():
     text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
     return text_clf
 
+from sklearn.svm import LinearSVC
+from sklearn.feature_extraction.text import TfidfVectorizer
 def get_classifier():
-     # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenize, ngram_range=(2,2))
+    
+    # Inicializamos el Vectorizador para transformar las oraciones a BoW 
+    #angerTokenizer = superTokenize(mark_neg=True, remSW=True, lem=True, stem=True)
+
+    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(2,2))
     
     # Clasificadores.
     lr = LogisticRegression()
@@ -278,8 +297,8 @@ def get_classifier():
     k_neighbors = KNeighborsClassifier(5)
     svc = SVC(kernel='linear', probability=True) 
 
-    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
-    return text_clf
+    classifier = Pipeline([('vect', vectorizer), ('clf', svc)])
+    return classifier
 
 print("SVC Classifier, 1-2ngrams, with stopwords removal\n \n")
 
@@ -347,7 +366,7 @@ def classifyAnger(dataset, key):
 
     X_train, X_test, y_train, y_test = split_dataset(dataset)
 
-    text_clf = get_classifierAnger()
+    text_clf = get_classifier()
 
     # Entrenar el clasificador
     text_clf.fit(X_train, y_train)
@@ -436,17 +455,17 @@ classifierAnger, learned_labels_anger = classifyAnger(train['anger'], 'anger')
 classifiers.append(classifierAnger)
 learned_labels_array.append(learned_labels_anger)
 
-classifierFear, learned_labels_fear = classifyFear(train['fear'], 'fear')
-classifiers.append(classifierFear)
-learned_labels_array.append(learned_labels_fear)
+# classifierFear, learned_labels_fear = classifyAnger(train['fear'], 'fear')
+# classifiers.append(classifierFear)
+# learned_labels_array.append(learned_labels_fear)
 
-classifierJoy, learned_labels_joy = classifyJoy(train['joy'], 'joy')
-classifiers.append(classifierJoy)
-learned_labels_array.append(learned_labels_joy)
+# classifierJoy, learned_labels_joy = classifyAnger(train['joy'], 'joy')
+# classifiers.append(classifierJoy)
+# learned_labels_array.append(learned_labels_joy)
 
-classifierSadness, learned_labels_sadness = classifySadness(train['sadness'], 'sadness')
-classifiers.append(classifierSadness)
-learned_labels_array.append(learned_labels_sadness)
+# classifierSadness, learned_labels_sadness = classifyAnger(train['sadness'], 'sadness')
+# classifiers.append(classifierSadness)
+# learned_labels_array.append(learned_labels_sadness)
 
 
 
