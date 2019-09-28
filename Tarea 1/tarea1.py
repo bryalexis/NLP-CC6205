@@ -176,7 +176,7 @@ def getJoyLexicons():
     lexicons = getLexicons()
     joyLexicons = []
     for key in lexicons:
-        if lexicons[key][4] == '#joy' or lexicons[key][6] == 'positive':
+        if lexicons[key][4] == '#joy':
             joyLexicons.append(key)
     return joyLexicons 
 
@@ -195,7 +195,7 @@ sadnessLexicons = getSadnessLexicons()
 
 
 def superTokenizeAnger(text):
-    tokens = superTokenize(text, False, True, False, True)
+    tokens = superTokenize(text, False, True, True, True)
     newTokens = []
     for token in tokens:
         if token in angerLexicons:
@@ -264,7 +264,7 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 def get_classifierAnger():
      # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(2,2))
+    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(1,1))
     # Clasificadores.
     lr = LogisticRegression()
     mlp = MLPClassifier() # mas auc
@@ -281,7 +281,7 @@ def get_classifierFear():
     mlp = MLPClassifier() # mas auc
     svc = SVC(kernel='linear', probability=True) 
 
-    text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
     return text_clf
 
 def get_classifierJoy():
@@ -292,13 +292,13 @@ def get_classifierJoy():
     mlp = MLPClassifier() # mas auc
     svc = SVC(kernel='linear', probability=True)
   
-    text_clf = Pipeline([('vect', vectorizer), ('clf', mlp)])
+    text_clf = Pipeline([('vect', vectorizer), ('clf', svc)])
     return text_clf
 
 
 def get_classifierSadness():
     # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeSadness, ngram_range=(1,2))
+    vectorizer = CountVectorizer(tokenizer=superTokenizeSadness, ngram_range=(1,1))
 
     # Clasificadores.
     mlp = MLPClassifier() 
@@ -391,7 +391,7 @@ def classifyAnger(dataset, key):
 
     X_train, X_test, y_train, y_test = split_dataset(dataset)
 
-    text_clf = get_classifier()
+    text_clf = get_classifierAnger()
 
     # Entrenar el clasificador
     text_clf.fit(X_train, y_train)
