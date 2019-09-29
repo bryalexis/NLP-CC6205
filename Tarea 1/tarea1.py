@@ -163,14 +163,15 @@ def getEmojis():
     return emojis
 emojis = getEmojis()
 lex = getLexicons()
+
 def tokenizeAnger(text):
     tokens = superTokenize(text, False, True, True, True)
     newTokens = []
     for token in tokens:
         if token in emotionLexicons['anger']:
-            if float(lex[token][0])>-0.5:
+            if float(lex[token][7])>-0.5:
                 newTokens.append('LOW')
-            elif float(lex[token][0])>-0.8:
+            elif float(lex[token][7])>-0.8:
                 newTokens.append('MEDIUM')
             else:
                 newTokens.append('HIGH')
@@ -206,13 +207,13 @@ def tokenizeJoy(text):
     newTokens = []
     for token in tokens:
         if token in emotionLexicons['joy']:
+            if float(lex[token][2])<0.5:
+                newTokens.append('LOW')
+            elif float(lex[token][2])<0.8:
+                newTokens.append('MEDIUM')
+            else:
+                newTokens.append('HIGH')
             newTokens.append('JOY')
-        elif token in emojis:
-            text_emoji = UNICODE_EMOJI[token]
-            text_emoji.replace(':','')
-            text_emoji.replace('_',' ')
-            words = text_emoji.split()
-            newTokens = newTokens+remStopWords(words)
         else:
             newTokens.append(token)
     return newTokens
@@ -223,12 +224,6 @@ def tokenizeSadness(text):
     for token in tokens:
         if token in emotionLexicons['sadness']:
             newTokens.append('SAD')
-        elif token in emojis:
-            text_emoji = UNICODE_EMOJI[token]
-            text_emoji.replace(':','')
-            text_emoji.replace('_',' ')
-            words = text_emoji.split()
-            newTokens = newTokens+remStopWords(words)
         else:
             newTokens.append(token)
     return newTokens
