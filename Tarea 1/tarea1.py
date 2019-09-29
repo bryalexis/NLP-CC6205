@@ -18,13 +18,6 @@ from sklearn.model_selection import train_test_split
 import os
 import numpy as np
 
-# NEW
-from nltk.tokenize import TweetTokenizer
-from nltk.sentiment.util import mark_negation
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer 
-
-
 
 # Con lo anterior listo, ahora necesitamos guardar los datos, como vamos a usar
 # data de github, hay que conseguir los csv! (se va a demorar un poco)
@@ -84,8 +77,6 @@ def auc(test_set, predicted_set):
 
 
 # Aquí se supone que el dataset se divide en train y test
-# Creo que esto no debería modificarse
-
 def split_dataset(dataset):
     # Dividir el dataset en train set y test set
     X_train, X_test, y_train, y_test = train_test_split(
@@ -102,21 +93,8 @@ def split_dataset(dataset):
 # Esto hace los tokens para un tweet (considera emojis y caritas)
 # y ademas añade un negado a todo lo que venga después de una negación
 
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from emoji import UNICODE_EMOJI
-
 # Remueve stop words, puntos, comas, dos puntos y tags de twitter
-
-def hashtagToWord(tokens):
-    newTokens = []
-    for token in tokens:
-        newTokens.append(token.replace('#',''))
-        #token = token.replace('&','and')
-        #print(token)
-    return newTokens
-    
-
+from nltk.corpus import stopwords
 def remStopWords(tokens):
     newTokens = []
     stopWords = set(stopwords.words('english'))
@@ -127,6 +105,7 @@ def remStopWords(tokens):
     return newTokens
 
 # Hace un stemming
+from nltk.stem import PorterStemmer 
 def stemmize(tokens):
     ps = PorterStemmer()
     stemmedTokens = []
@@ -134,7 +113,14 @@ def stemmize(tokens):
         stemmedTokens.append(ps.stem(word))
     return stemmedTokens
 
+def hashtagToWord(tokens):
+    newTokens = []
+    for token in tokens:
+        newTokens.append(token.replace('#',''))
+    return newTokens
+
 # Lematization
+from nltk.stem import WordNetLemmatizer
 def lemmatize(tokens):
     lem = WordNetLemmatizer()
     lemmatizedTokens = []
@@ -142,7 +128,10 @@ def lemmatize(tokens):
         lemmatizedTokens.append(lem.lemmatize(word))
     return lemmatizedTokens
 
-# The FINAL Tokenizer    
+
+# The FINAL Tokenizer
+from nltk.tokenize import TweetTokenizer
+from nltk.sentiment.util import mark_negation
 def superTokenize(text, mark_neg, remSW, lem, stem):
     tokens = TweetTokenizer().tokenize(text)
     if mark_neg:    tokens = mark_negation(tokens)
@@ -152,93 +141,99 @@ def superTokenize(text, mark_neg, remSW, lem, stem):
     return tokens
 
 from lexicons import getLexicons
-def getAngerLexicons():
+def getEmotionLexicons():
     lexicons = getLexicons()
-    angerLexicons = []
+    emotions = ['anger','fear','joy','sadness']
+    emotionLexicons = {}
+    for emotion in emotions:
+        emotionLexicons[emotion] = []
     for key in lexicons:
-        if lexicons[key][4] == '#anger':
-            angerLexicons.append(key)
-    return angerLexicons 
+        for emotion in emotions:
+            if lexicons[key][4] == ('#'+emotion):
+                emotionLexicons[emotion].append(key)
+    return emotionLexicons
+emotionLexicons = getEmotionLexicons()
 
-angerLexicons = getAngerLexicons()
-
-def getFearLexicons():
-    lexicons = getLexicons()
-    fearLexicons = []
-    for key in lexicons:
-        if lexicons[key][4] == '#fear':
-            fearLexicons.append(key)
-    return fearLexicons 
-
-fearLexicons = getFearLexicons()
-
-def getJoyLexicons():
-    lexicons = getLexicons()
-    joyLexicons = []
-    for key in lexicons:
-        if lexicons[key][4] == '#joy':
-            joyLexicons.append(key)
-    return joyLexicons 
-
-joyLexicons = getJoyLexicons()
-
-def getSadnessLexicons():
-    lexicons = getLexicons()
-    sadnessLexicons = []
-    for key in lexicons:
-        if lexicons[key][4] == '#sadness':
-            sadnessLexicons.append(key)
-    return sadnessLexicons 
-
-sadnessLexicons = getSadnessLexicons()
-
-
-
-def superTokenizeAnger(text):
-    tokens = superTokenize(text, False, True, True, True)
-    newTokens = []
-    for token in tokens:
-        if token in angerLexicons:
-            newTokens.append('anger')
-        else:
-            newTokens.append(token)
-    return newTokens
-
-def superTokenizeFear(text):
-    tokens = superTokenize(text, False, True, True, True)
-    newTokens = []
-    for token in tokens:
-        if token in joyLexicons:
-            newTokens.append('fear')
-        else:
-            newTokens.append(token)
-    return newTokens
-
-def superTokenizeJoy(text):
-    tokens = superTokenize(text, True, True, False, True)  
-    newTokens = []
-    for token in tokens:
-        if token in joyLexicons:
-            newTokens.append('joy')
-        else:
-            newTokens.append(token)
-    return newTokens
-
-def superTokenizeSadness(text):
-    tokens = superTokenize(text, True, True, False, True)
-    newTokens = []
-    for token in tokens:
-        if token in sadnessLexicons:
-            newTokens.append('sadness')
-        else:
-            newTokens.append(token)
-    return newTokens
-
+# Emojis
+from emoji import UNICODE_EMOJI
 def getEmojis():
     emojis = []
     for key in UNICODE_EMOJI:
         emojis.append(key)
     return emojis
+emojis = getEmojis()
+lex = getLexicons()
+def tokenizeAnger(text):
+    tokens = superTokenize(text, False, True, True, True)
+    newTokens = []
+    for token in tokens:
+        if token in emotionLexicons['anger']:
+            if float(lex[token][0])>-0.5:
+                newTokens.append('LOW')
+            elif float(lex[token][0])>-0.8:
+                newTokens.append('MEDIUM')
+            else:
+                newTokens.append('HIGH')
+            newTokens.append('ANGER')
+        elif token in emojis:
+            text_emoji = UNICODE_EMOJI[token]
+            text_emoji.replace(':','')
+            text_emoji.replace('_',' ')
+            words = text_emoji.split()
+            newTokens = newTokens+remStopWords(words)
+        else:
+            newTokens.append(token)
+    return newTokens
+
+def tokenizeFear(text):
+    tokens = superTokenize(text, False, True, True, True)
+    newTokens = []
+    for token in tokens:
+        if token in emotionLexicons['fear']:
+            newTokens.append('FEAR')
+        elif token in emojis:
+            text_emoji = UNICODE_EMOJI[token]
+            text_emoji.replace(':','')
+            text_emoji.replace('_',' ')
+            words = text_emoji.split()
+            newTokens = newTokens+remStopWords(words)
+        else:
+            newTokens.append(token)
+    return newTokens
+
+def tokenizeJoy(text):
+    tokens = superTokenize(text, True, True, False, True)  
+    newTokens = []
+    for token in tokens:
+        if token in emotionLexicons['joy']:
+            newTokens.append('JOY')
+        elif token in emojis:
+            text_emoji = UNICODE_EMOJI[token]
+            text_emoji.replace(':','')
+            text_emoji.replace('_',' ')
+            words = text_emoji.split()
+            newTokens = newTokens+remStopWords(words)
+        else:
+            newTokens.append(token)
+    return newTokens
+
+def tokenizeSadness(text):
+    tokens = superTokenize(text, True, True, False, True)
+    newTokens = []
+    for token in tokens:
+        if token in emotionLexicons['sadness']:
+            newTokens.append('SAD')
+        elif token in emojis:
+            text_emoji = UNICODE_EMOJI[token]
+            text_emoji.replace(':','')
+            text_emoji.replace('_',' ')
+            words = text_emoji.split()
+            newTokens = newTokens+remStopWords(words)
+        else:
+            newTokens.append(token)
+    return newTokens
+
+
 
 """
     Consejo para el vectorizador: investigar los modulos de nltk, en particular, 
@@ -254,7 +249,6 @@ def getEmojis():
 from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
@@ -264,7 +258,7 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 def get_classifierAnger():
      # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeAnger, ngram_range=(1,1))
+    vectorizer = CountVectorizer(tokenizer=tokenizeAnger, ngram_range=(1,2))
     # Clasificadores.
     lr = LogisticRegression()
     mlp = MLPClassifier() # mas auc
@@ -275,7 +269,7 @@ def get_classifierAnger():
 
 def get_classifierFear():
         # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeFear, ngram_range=(1,1))
+    vectorizer = CountVectorizer(tokenizer=tokenizeFear, ngram_range=(1,2))
 
     # Clasificadores.
     mlp = MLPClassifier() # mas auc
@@ -286,7 +280,7 @@ def get_classifierFear():
 
 def get_classifierJoy():
         # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeJoy, ngram_range=(1,1))
+    vectorizer = CountVectorizer(tokenizer=tokenizeJoy, ngram_range=(1,2))
 
     # Clasificadores.
     mlp = MLPClassifier() # mas auc
@@ -298,7 +292,7 @@ def get_classifierJoy():
 
 def get_classifierSadness():
     # Inicializamos el Vectorizador para transformar las oraciones a BoW 
-    vectorizer = CountVectorizer(tokenizer=superTokenizeSadness, ngram_range=(1,1))
+    vectorizer = CountVectorizer(tokenizer=tokenizeSadness, ngram_range=(1,1))
 
     # Clasificadores.
     mlp = MLPClassifier() 
@@ -325,7 +319,6 @@ def get_classifier():
     classifier = Pipeline([('vect', vectorizer), ('clf', svc)])
     return classifier
 
-print("SVC Classifier, 1-2ngrams, with stopwords removal\n \n")
 
 # Esto de aquí imprime los datos importantes
 # Esta función imprime la matriz de confusión, 
@@ -511,23 +504,23 @@ def predict_target(dataset, classifier, labels):
 
 predicted_target = {}
 
-# if (not os.path.isdir('./predictions')):
-#     os.mkdir('./predictions')
+if (not os.path.isdir('./predictions')):
+    os.mkdir('./predictions')
 
-# else:
-#     # Eliminar predicciones anteriores:
-#     shutil.rmtree('./predictions')
-#     os.mkdir('./predictions')
+else:
+    # Eliminar predicciones anteriores:
+    shutil.rmtree('./predictions')
+    os.mkdir('./predictions')
 
-# for idx, key in enumerate(target):
-#     # Predecir el target set
-#     predicted_target[key] = predict_target(target[key], classifiers[idx],
-#                                            learned_labels_array[idx])
-#     # Guardar predicciones
-#     predicted_target[key].to_csv('./predictions/{}-pred.txt'.format(key),
-#                                  sep='\t',
-#                                  header=False,
-#                                  index=False)
+for idx, key in enumerate(target):
+    # Predecir el target set
+    predicted_target[key] = predict_target(target[key], classifiers[idx],
+                                           learned_labels_array[idx])
+    # Guardar predicciones
+    predicted_target[key].to_csv('./predictions/{}-pred.txt'.format(key),
+                                 sep='\t',
+                                 header=False,
+                                 index=False)
 
-# # Crear archivo zip
-# a = shutil.make_archive('predictions', 'zip', './predictions')
+# Crear archivo zip
+a = shutil.make_archive('predictions', 'zip', './predictions')
